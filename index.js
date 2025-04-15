@@ -3,7 +3,8 @@ import { sequelize, Repository, Release } from "./src/sqlite/index.js";
 import bodyParser from "body-parser";
 import { releaseScheduler, repoScheduler } from "./src/scheduler/index.js";
 import env from "./src/config/environment.js";
-import { getReposNotTags } from "./src/repository/repo.js";
+import * as RepoRepository from "./src/repository/repo.js";
+import * as ReleaseRepository from "./src/repository/release.js";
 const app = express();
 const port = env.PORT;
 
@@ -25,7 +26,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", async (req, res) => {
     try {
-        const repositories = await Repository.findAll();
+        const repositories = await RepoRepository.findAll();
         res.json(repositories);
     } catch (error) {
         console.error("❌ Error:", error.message);
@@ -35,17 +36,18 @@ app.get("/", async (req, res) => {
 
 app.get("/releases", async (req, res) => {
     try {
-        const releases = await Release.findAll({
-            attributes: ["id", "tag"],
-            include: [
-                {
-                    model: Repository,
-                    required: true,
-                },
-            ],
-            offset: 0,
-            limit: 10,
-        });
+        const releases = await ReleaseRepository.getReleases();
+        res.json(releases);
+    } catch (error) {
+        console.error("❌ Error:", error.message);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.get("/releases-test", async (req, res) => {
+    try {
+        const releaseIds = []; // Example release IDs
+        const releases = await ReleaseRepository.getFirstReleases(releaseIds);
         res.json(releases);
     } catch (error) {
         console.error("❌ Error:", error.message);
@@ -55,7 +57,7 @@ app.get("/releases", async (req, res) => {
 
 app.get("/repo-not-in-releases", async (req, res) => {
     try {
-        const repositories = await getReposNotTags();
+        const repositories = await RepoRepository.getReposNotTags();
         res.json(repositories);
     } catch (error) {
         console.error("❌ Error:", error.message);

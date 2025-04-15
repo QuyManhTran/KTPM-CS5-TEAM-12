@@ -2,6 +2,12 @@ import { Op } from "sequelize";
 import { Release, Repository } from "../sqlite/index.js";
 import env from "../config/environment.js";
 
+export const findAll = async () => {
+    return Repository.findAll({
+        attributes: ["id", "user", "name"],
+    });
+};
+
 export const getReposNotTags = async (existRepos) => {
     if (!Array.isArray(existRepos)) {
         existRepos = [];
