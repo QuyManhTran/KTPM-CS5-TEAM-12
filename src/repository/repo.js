@@ -8,6 +8,10 @@ export const findAll = async () => {
     });
 };
 
+export const count = async () => {
+    return Repository.count();
+};
+
 export const getReposNotTags = async (existRepos) => {
     if (!Array.isArray(existRepos)) {
         existRepos = [];

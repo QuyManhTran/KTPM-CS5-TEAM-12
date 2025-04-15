@@ -1,3 +1,4 @@
 export const REPO_QUEUE = "repo_queue";
 export const TAG_QUEUE = "tag_queue";
+export const FIRST_COMMIT_QUEUE = "first_commit_queue";
 export const COMMIT_QUEUE = "commit_queue";
