@@ -1,0 +1,30 @@
+{
+    "name": "big-project",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        "queue": "node ./src/queue/worker.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "axios": "^1.8.4",
+        "body-parser": "^1.20.3",
+        "bullmq": "^5.48.1",
+        "cheerio": "^1.0.0",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "ioredis": "^5.6.0",
+        "node-cron": "^3.0.3",
+        "sequelize": "^6.37.7",
+        "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.9"
+    }
+}
