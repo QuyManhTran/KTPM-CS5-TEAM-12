@@ -33,6 +33,8 @@ export const getFirstReleases = async (releaseIds) => {
           r2.id AS id2,
           r2.tag AS tag2,
           repo1.id AS repoID1,
+          repo1.user AS user,
+          repo1.name AS name,
           repo2.id AS repoID2
         FROM ordered r1
         LEFT JOIN ordered r2 ON r1.repoID = r2.repoID AND r2.rn = r1.rn + 1

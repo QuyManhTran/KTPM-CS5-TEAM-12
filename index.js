@@ -1,10 +1,11 @@
 import express from "express";
 import { sequelize, Repository, Release } from "./src/sqlite/index.js";
 import bodyParser from "body-parser";
-import { releaseScheduler, repoScheduler } from "./src/scheduler/index.js";
+import { releaseScheduler, repoScheduler, firstCommitScheduler } from "./src/scheduler/index.js";
 import env from "./src/config/environment.js";
 import * as RepoRepository from "./src/repository/repo.js";
 import * as ReleaseRepository from "./src/repository/release.js";
+import * as CommitRepository from "./src/repository/commit.js";
 const app = express();
 const port = env.PORT;
 
@@ -65,8 +66,19 @@ app.get("/repo-not-in-releases", async (req, res) => {
     }
 });
 
+app.get("/commits", async (req, res) => {
+    try {
+        const commits = await CommitRepository.getAllCommits();
+        res.json(commits);
+    } catch (error) {
+        console.error("❌ Error:", error.message);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
     // repoScheduler.start();
     // releaseScheduler.start();
+    // firstCommitScheduler.start();
 });

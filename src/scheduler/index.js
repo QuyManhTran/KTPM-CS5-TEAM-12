@@ -19,7 +19,7 @@ async function crawlRepoQueueHandler() {
     const per_page = env.PAGE_SIZE;
     let page = await getKey(REPO_KEY);
     if (!page) {
-        const numberRepositories = await Repository.count();
+        const numberRepositories = await RepoRepository.count();
         page = numberRepositories / per_page;
     }
     page += 1;
@@ -52,8 +52,8 @@ async function crawlFirstCommitQueueHandler() {
     }
     await Promise.all(
         firstReleases.map(async (release) => {
-            const { id1, tag1, id2, tag2, repoID1, repoID2 } = release;
-            return addCommitToQueue({ id1, tag1, id2, tag2, repoID1, repoID2 });
+            const { id1, tag1, id2, tag2, repoID1, repoID2, user, name } = release;
+            return addCommitToQueue({ id1, tag1, id2, tag2, repoID1, repoID2, user, name });
         }),
     );
 }
@@ -82,4 +82,16 @@ const releaseScheduler = cron.schedule(
     },
 );
 
-export { repoScheduler, releaseScheduler, getKeyOrInit };
+const firstCommitScheduler = cron.schedule(
+    "*/30 * * * * *",
+    async () => {
+        console.log("🚀 Commit Scheduler started");
+        await crawlFirstCommitQueueHandler();
+        console.log("✅ Commit Scheduler finished");
+    },
+    {
+        scheduled: false,
+    },
+);
+
+export { repoScheduler, releaseScheduler, firstCommitScheduler, getKeyOrInit };

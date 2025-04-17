@@ -62,9 +62,14 @@ const Release = sequelize.define(
 const Commit = sequelize.define(
     "commit",
     {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+        },
         hash: {
             type: DataTypes.TEXT,
-            primaryKey: true,
+            allowNull: false,
         },
         message: {
             type: DataTypes.TEXT,

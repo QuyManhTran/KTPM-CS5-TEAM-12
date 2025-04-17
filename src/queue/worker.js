@@ -3,10 +3,18 @@ import { crawlGitHubRepoLinks } from "../request/repo.js";
 import { setKey } from "../config/redis.js";
 import redisQueue from "./index.js";
 import { FIRST_COMMIT_QUEUE, REPO_QUEUE, TAG_QUEUE } from "../constant/queue.js";
-import { FIRST_RELEASES, NOT_DONE_RELEASES, REPO_KEY, REPO_NOT_TAGS } from "../constant/redis.js";
+import {
+    FIRST_RELEASES,
+    NOT_DONE_RELEASES,
+    RELEASE,
+    REPO_KEY,
+    REPO_NOT_TAGS,
+} from "../constant/redis.js";
 import { crawlGitHubTagsByRepo } from "../request/release.js";
 import { getKeyOrInit } from "../scheduler/index.js";
 import { Release } from "../sqlite/index.js";
+import { crawlCommitByReleaseId } from "../request/commit.js";
+import * as CommitRepository from "../repository/commit.js";
 
 const repoWorker = new Worker(
     REPO_QUEUE,
@@ -58,18 +66,51 @@ const tagWorker = new Worker(
     },
 );
 
-const firstCommitWorker = new Worker(FIRST_COMMIT_QUEUE, async (job) => {
-    const { id1, tag1, id2, tag2, repoID1, repoID2 } = job.data;
-    if (!id2 || !tag2 || !repoID2) {
-        console.log("❌ Error: First version don't have any commits");
-        const firstReleases = await getKeyOrInit(FIRST_RELEASES, []);
-        if (!firstReleases.includes(id1)) {
-            await setKey(FIRST_RELEASES, [...firstReleases, id1]);
-        }
-        const notDoneReleases = await getKeyOrInit(NOT_DONE_RELEASES, []);
+const firstCommitWorker = new Worker(
+    FIRST_COMMIT_QUEUE,
+    async (job) => {
+        const { id1, tag1, id2, tag2, repoID1, repoID2, user, name } = job.data;
+        if (!id2 || !tag2 || !repoID2) {
+            console.log("❌ Error: First version don't have any commits");
+            const firstReleases = await getKeyOrInit(FIRST_RELEASES, []);
+            if (!firstReleases.includes(id1)) {
+                await setKey(FIRST_RELEASES, [...firstReleases, id1]);
+            }
+            /*  const notDoneReleases = await getKeyOrInit(NOT_DONE_RELEASES, []);
         if (!notDoneReleases.includes(id1)) {
             await setKey(NOT_DONE_RELEASES, [...notDoneReleases, id1]);
+        } */
+            return;
         }
-        return;
-    }
-});
+        const { isOke, commits, meta } = await crawlCommitByReleaseId(job.data);
+        if (!isOke) return;
+        try {
+            if (!commits.length) {
+                const firstReleases = await getKeyOrInit(FIRST_RELEASES, []);
+                if (!firstReleases.includes(id1)) {
+                    await setKey(FIRST_RELEASES, [...firstReleases, id1]);
+                }
+                return;
+            }
+            await CommitRepository.bulkCreate(commits);
+            const firstReleases = await getKeyOrInit(FIRST_RELEASES, []);
+            if (!firstReleases.includes(id1)) {
+                await setKey(FIRST_RELEASES, [...firstReleases, id1]);
+            }
+            if (meta.currentPage < meta.nextPage) {
+                const notDoneReleases = await getKeyOrInit(NOT_DONE_RELEASES, []);
+                if (!notDoneReleases.includes(id1)) {
+                    await setKey(NOT_DONE_RELEASES, [...notDoneReleases, id1]);
+                }
+                const metaRelease = await getKeyOrInit(`${RELEASE}_${id1}`, meta);
+                console.log("🚀 Meta release: ", metaRelease);
+            }
+        } catch (error) {
+            console.error("❌ Error:", error.message);
+        }
+    },
+    {
+        connection: redisQueue,
+        concurrency: 10,
+    },
+);
