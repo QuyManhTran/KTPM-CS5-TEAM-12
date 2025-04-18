@@ -1,6 +1,19 @@
 import * as RepoRepository from "../repository/repo.js";
 export default class RepoService {
-    static async getRepo() {
-        return RepoRepository.findAll();
+    static async getRepo(pagination) {
+        const repos = await RepoRepository.findAll(pagination);
+        const count = await RepoRepository.count();
+        const metadata = {
+            total: count,
+            currentPage: pagination.page,
+            pageSize: pagination.limit,
+            totalPage: Math.ceil(count / pagination.limit),
+            hasNextPage: pagination.page < Math.ceil(count / pagination.limit),
+            hasPrevPage: pagination.page > 1,
+        };
+        return {
+            data: repos,
+            metadata,
+        };
     }
 }

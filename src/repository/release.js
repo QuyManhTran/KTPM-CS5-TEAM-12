@@ -16,6 +16,29 @@ export const getReleases = async () => {
     });
 };
 
+export const count = async () => {
+    return Release.count();
+};
+
+export const countByRepoId = async (repoId) => {
+    return Release.count({
+        where: {
+            repoID: repoId,
+        },
+    });
+};
+
+export const findAllByRepoId = async (repoId, { limit, offset }) => {
+    return Release.findAll({
+        where: {
+            repoID: repoId,
+        },
+        attributes: ["id", "content", "tag", "repoID"],
+        limit,
+        offset,
+    });
+};
+
 export const getFirstReleases = async (releaseIds) => {
     const releases = await sequelize.query(
         // `select r1.id as id1, r1.tag as tag1, r2.id as id2, r2.tag as tag2, repo1.id as repoID1, repo2.id as repoID2 from releases as r1 left join releases as r2 on r1.id = r2.id - 1 inner join repos repo1 on repo1.id = r1.repoID inner join repos repo2 on repo2.id = r2.repoID limit 5 offset 0`,

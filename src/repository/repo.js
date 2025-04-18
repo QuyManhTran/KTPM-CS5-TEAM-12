@@ -2,9 +2,11 @@ import { Op } from "sequelize";
 import { Release, Repository } from "../sqlite/index.js";
 import env from "../config/environment.js";
 
-export const findAll = async () => {
+export const findAll = async ({ limit, offset }) => {
     return Repository.findAll({
         attributes: ["id", "user", "name"],
+        limit,
+        offset,
     });
 };
 

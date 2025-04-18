@@ -1,6 +1,6 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "../constant/query";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "../constant/query.js";
 
-const PaginationMiddleware = (req, res, next) => {
+export default function PaginationMiddleware(req, res, next) {
     const { page = DEFAULT_PAGE, limit = DEFAULT_PAGE_SIZE } = req.query;
 
     // Convert page and limit to integers
@@ -20,4 +20,4 @@ const PaginationMiddleware = (req, res, next) => {
     };
 
     next();
-};
+}

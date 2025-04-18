@@ -20,4 +20,15 @@ export default class ReleaseController {
             res.status(500).json({ error: "Internal Server Error" });
         }
     }
+
+    static getCommitsByReleaseId = async (req, res) => {
+        const { releaseId } = req.params;
+        try {
+            const releases = await ReleaseService.getCommitsByReleaseId(releaseId, req.pagination);
+            res.status(200).json(releases);
+        } catch (error) {
+            console.error("❌ Error:", error.message);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    };
 }
