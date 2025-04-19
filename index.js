@@ -1,6 +1,7 @@
 import express from "express";
 import { sequelize } from "./src/sqlite/index.js";
 import bodyParser from "body-parser";
+import cors from "cors";
 import { releaseScheduler, repoScheduler, firstCommitScheduler } from "./src/scheduler/index.js";
 import env from "./src/config/environment.js";
 import { routeConfig } from "./src/route/index.js";
@@ -22,6 +23,14 @@ app.use(bodyParser.json());
 
 //support parsing of application/x-www-form-urlencoded post data
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Enable CORS for all routes
+app.use(
+    cors({
+        origin: "*",
+        methods: ["GET"],
+    }),
+);
 
 routeConfig(app);
 
