@@ -5,10 +5,10 @@ export default class RepoController {
     static getRepo = async (req, res) => {
         try {
             const repos = await RepoService.getRepo(req.pagination);
-            res.status(200).json(repos);
+            res.success(200, repos);
         } catch (error) {
             console.error("❌ Error:", error.message);
-            res.status(500).json({ error: "Internal Server Error" });
+            res.error(500, "Internal Server Error");
         }
     };
 
@@ -16,10 +16,10 @@ export default class RepoController {
         const { repoId } = req.params;
         try {
             const releases = await ReleaseService.getReleasesByRepoId(repoId, req.pagination);
-            res.status(200).json(releases);
+            res.success(200, releases);
         } catch (error) {
             console.error("❌ Error:", error.message);
-            res.status(500).json({ error: "Internal Server Error" });
+            res.error(500, "Internal Server Error");
         }
     };
 }

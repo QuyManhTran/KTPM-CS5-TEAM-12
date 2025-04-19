@@ -3,7 +3,7 @@ export default class RepoService {
     static async getRepo(pagination) {
         const repos = await RepoRepository.findAll(pagination);
         const count = await RepoRepository.count();
-        const metadata = {
+        const meta = {
             total: count,
             currentPage: pagination.page,
             pageSize: pagination.limit,
@@ -13,7 +13,7 @@ export default class RepoService {
         };
         return {
             data: repos,
-            metadata,
+            meta,
         };
     }
 }

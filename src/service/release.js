@@ -12,7 +12,7 @@ export default class ReleaseService {
     static async getReleasesByRepoId(repoId, pagination) {
         const releases = await ReleaseRepository.findAllByRepoId(repoId, pagination);
         const count = await ReleaseRepository.countByRepoId(repoId);
-        const metadata = {
+        const meta = {
             total: count,
             currentPage: pagination.page,
             pageSize: pagination.limit,
@@ -22,14 +22,14 @@ export default class ReleaseService {
         };
         return {
             data: releases,
-            metadata,
+            meta,
         };
     }
 
     static async getCommitsByReleaseId(releaseId, pagination) {
         const commits = await CommitRepository.findAllByReleaseId(releaseId, pagination);
         const count = await CommitRepository.countByReleaseId(releaseId);
-        const metadata = {
+        const meta = {
             total: count,
             currentPage: pagination.page,
             pageSize: pagination.limit,
@@ -39,7 +39,7 @@ export default class ReleaseService {
         };
         return {
             data: commits,
-            metadata,
+            meta,
         };
     }
 }

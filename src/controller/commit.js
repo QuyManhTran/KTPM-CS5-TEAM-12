@@ -4,10 +4,10 @@ export default class CommitController {
     static getCommits = async (req, res) => {
         try {
             const commits = await CommitService.getCommits();
-            res.status(200).json(commits);
+            res.success(200, commits);
         } catch (error) {
             console.error("❌ Error:", error.message);
-            res.status(500).json({ error: "Internal Server Error" });
+            res.error(500, "Internal Server Error");
         }
     };
 }
