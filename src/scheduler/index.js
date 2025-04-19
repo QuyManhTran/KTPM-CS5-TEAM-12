@@ -1,8 +1,13 @@
 import cron from "node-cron";
 import { getKey, setKey } from "../config/redis.js";
 import env from "../config/environment.js";
-import { addCommitToQueue, addRepoToQueue, addTagToQueue } from "../queue/queue.js";
-import { FIRST_RELEASES, REPO_KEY, REPO_NOT_TAGS } from "../constant/redis.js";
+import {
+    addCommitToQueue,
+    addFirstCommitToQueue,
+    addRepoToQueue,
+    addTagToQueue,
+} from "../queue/queue.js";
+import { FIRST_RELEASES, NOT_DONE_RELEASES, REPO_KEY, REPO_NOT_TAGS } from "../constant/redis.js";
 import * as RepoRepository from "../repository/repo.js";
 import * as ReleaseRepository from "../repository/release.js";
 
@@ -53,7 +58,23 @@ async function crawlFirstCommitQueueHandler() {
     await Promise.all(
         firstReleases.map(async (release) => {
             const { id1, tag1, id2, tag2, repoID1, repoID2, user, name } = release;
-            return addCommitToQueue({ id1, tag1, id2, tag2, repoID1, repoID2, user, name });
+            return addFirstCommitToQueue({ id1, tag1, id2, tag2, repoID1, repoID2, user, name });
+        }),
+    );
+}
+
+async function crawlCommitQueueHandler() {
+    const notDoneReleaseIds = (await getKeyOrInit(NOT_DONE_RELEASES, [])).filter(
+        (_, index) => index < env.PAGE_SIZE,
+    );
+    if (!notDoneReleaseIds.length) {
+        console.log("No more releases to crawl for commits.");
+        return;
+    }
+    console.log("🚀 Adding commit job: ", notDoneReleaseIds);
+    await Promise.all(
+        notDoneReleaseIds.map(async (releaseId) => {
+            return addCommitToQueue({ releaseId });
         }),
     );
 }
@@ -85,8 +106,20 @@ const releaseScheduler = cron.schedule(
 const firstCommitScheduler = cron.schedule(
     "*/30 * * * * *",
     async () => {
-        console.log("🚀 Commit Scheduler started");
+        console.log("🚀 First Commit Scheduler started");
         await crawlFirstCommitQueueHandler();
+        console.log("✅ first Commit Scheduler finished");
+    },
+    {
+        scheduled: false,
+    },
+);
+
+const commitScheduler = cron.schedule(
+    "*/30 * * * * *",
+    async () => {
+        console.log("🚀 Commit Scheduler started");
+        await crawlCommitQueueHandler();
         console.log("✅ Commit Scheduler finished");
     },
     {
@@ -94,4 +127,4 @@ const firstCommitScheduler = cron.schedule(
     },
 );
 
-export { repoScheduler, releaseScheduler, firstCommitScheduler, getKeyOrInit };
+export { repoScheduler, releaseScheduler, firstCommitScheduler, commitScheduler, getKeyOrInit };

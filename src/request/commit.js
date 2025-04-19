@@ -1,7 +1,7 @@
 import request from "../config/axios.js";
 import { getMeta } from "../util/commit.js";
 
-export async function crawlCommitByReleaseId({
+export async function crawlFirstCommitByReleaseId({
     id1,
     tag1,
     id2,
@@ -40,6 +40,28 @@ export async function crawlCommitByReleaseId({
                 name,
                 compare: `${tag2}...${tag1}`,
             },
+        };
+    } catch (error) {
+        console.error("Error fetching commits:", error);
+        return { isOke: false, commits: [] };
+    }
+}
+
+export async function crawlCommitByReleaseId({ user, name, compare, page, pageSize, releaseId }) {
+    const pathUrls = `/repos/${user}/${name}/compare/${compare}`;
+    try {
+        const response = await request.get(pathUrls, {
+            page,
+            per_page: pageSize,
+        });
+        const commits = response.data.commits.map((commit) => ({
+            hash: commit.sha,
+            message: commit.commit.message,
+            releaseID: releaseId,
+        }));
+        return {
+            isOke: true,
+            commits,
         };
     } catch (error) {
         console.error("Error fetching commits:", error);

@@ -31,5 +31,14 @@ const getKey = async (key) => {
     }
 };
 
+const deleteKey = async (key) => {
+    try {
+        await redis.del(key);
+        console.log(`✅ Key deleted: ${key}`);
+    } catch (error) {
+        console.error(`❌ Error delete key ${key}: `, error.message);
+    }
+};
+
 export default redis;
-export { setKey, getKey };
+export { setKey, getKey, deleteKey };

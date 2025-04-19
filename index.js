@@ -2,7 +2,12 @@ import express from "express";
 import { sequelize } from "./src/sqlite/index.js";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { releaseScheduler, repoScheduler, firstCommitScheduler } from "./src/scheduler/index.js";
+import {
+    releaseScheduler,
+    repoScheduler,
+    firstCommitScheduler,
+    commitScheduler,
+} from "./src/scheduler/index.js";
 import env from "./src/config/environment.js";
 import { routeConfig } from "./src/route/index.js";
 const app = express();
@@ -39,4 +44,5 @@ app.listen(port, () => {
     // repoScheduler.start();
     // releaseScheduler.start();
     // firstCommitScheduler.start();
+    commitScheduler.start();
 });
