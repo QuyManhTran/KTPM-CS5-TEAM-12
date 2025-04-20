@@ -1,5 +1,8 @@
 import request from "../config/axios.js";
+import { getKey } from "../config/redis.js";
+import { CURRENT_TOKEN_INDEX } from "../constant/redis.js";
 import { getMeta } from "../util/commit.js";
+import { getToken } from "../util/format.js";
 
 export async function crawlFirstCommitByReleaseId({
     id1,
@@ -16,10 +19,21 @@ export async function crawlFirstCommitByReleaseId({
         return;
     }
     const pathUrls = `/repos/${user}/${name}/compare/${tag2}...${tag1}`;
+    const currentIndex = await getKey(CURRENT_TOKEN_INDEX);
+    if (currentIndex === null) {
+        console.error("❌ Token index is null");
+        return false;
+    }
+    const token = getToken(currentIndex);
     try {
         const response = await request.get(pathUrls, {
-            page: 1,
-            per_page: 100,
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                page: 1,
+                per_page: 100,
+            },
         });
         const commits = response.data.commits.map((commit) => ({
             hash: commit.sha,
@@ -49,10 +63,21 @@ export async function crawlFirstCommitByReleaseId({
 
 export async function crawlCommitByReleaseId({ user, name, compare, page, pageSize, releaseId }) {
     const pathUrls = `/repos/${user}/${name}/compare/${compare}`;
+    const currentIndex = await getKey(CURRENT_TOKEN_INDEX);
+    if (currentIndex === null) {
+        console.error("❌ Token index is null");
+        return false;
+    }
+    const token = getToken(currentIndex);
     try {
         const response = await request.get(pathUrls, {
-            page,
-            per_page: pageSize,
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                page,
+                per_page: pageSize,
+            },
         });
         const commits = response.data.commits.map((commit) => ({
             hash: commit.sha,

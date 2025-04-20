@@ -44,5 +44,5 @@ app.listen(port, () => {
     // repoScheduler.start();
     // releaseScheduler.start();
     // firstCommitScheduler.start();
-    commitScheduler.start();
+    // commitScheduler.start();
 });

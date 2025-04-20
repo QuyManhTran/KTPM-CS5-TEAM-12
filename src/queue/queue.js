@@ -18,14 +18,10 @@ const commitQueue = new Queue(COMMIT_QUEUE, {
     connection: redisQueue,
 });
 
-const addRepoToQueue = async ({ page, per_page }) => {
-    repoQueue.add(
-        "crawl-repo",
-        { page, per_page },
-        {
-            removeOnComplete: true,
-        },
-    );
+const addRepoToQueue = async (data) => {
+    repoQueue.add("crawl-repo", data, {
+        removeOnComplete: true,
+    });
 };
 
 const addTagToQueue = async (data) => {

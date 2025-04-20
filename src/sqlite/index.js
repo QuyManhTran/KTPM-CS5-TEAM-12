@@ -30,6 +30,12 @@ const Repository = sequelize.define(
     },
     {
         timestamps: true,
+        indexes: [
+            {
+                unique: true,
+                fields: ["user", "name"],
+            },
+        ],
     },
 );
 

@@ -7,9 +7,19 @@ import {
     addRepoToQueue,
     addTagToQueue,
 } from "../queue/queue.js";
-import { FIRST_RELEASES, NOT_DONE_RELEASES, REPO_KEY, REPO_NOT_TAGS } from "../constant/redis.js";
+import {
+    CURRENT_TOKEN_INDEX,
+    FIRST_RELEASES,
+    NOT_DONE_RELEASES,
+    REPO_KEY,
+    REPO_NOT_TAGS,
+} from "../constant/redis.js";
 import * as RepoRepository from "../repository/repo.js";
 import * as ReleaseRepository from "../repository/release.js";
+import { Mutex } from "async-mutex";
+import { getRateLimit } from "../request/rate-limit.js";
+
+const tokenMutex = new Mutex();
 
 async function getKeyOrInit(key, defaultValue) {
     let value = await getKey(key);
@@ -20,12 +30,38 @@ async function getKeyOrInit(key, defaultValue) {
     return value;
 }
 
+async function changeTokenIndexIfExpired() {
+    const currentIndex = await getKeyOrInit(CURRENT_TOKEN_INDEX, 0);
+    const rate = await getRateLimit(currentIndex);
+    if (rate) {
+        const { remaining, reset } = rate;
+        const now = Math.floor(Date.now() / 1000);
+        if (remaining < 1 && reset > now) {
+            console.log("🚀 Token expired, changing token index");
+            await setKey(CURRENT_TOKEN_INDEX, currentIndex + 1);
+        } else {
+            console.log("🚀 Token is still valid", {
+                remaining,
+                reset: new Date(reset * 1000).toLocaleString(),
+            });
+        }
+    }
+}
+
 async function crawlRepoQueueHandler() {
     const per_page = env.PAGE_SIZE;
     let page = await getKey(REPO_KEY);
+    const numberRepositories = await RepoRepository.count();
+    if (numberRepositories >= env.CRAWL_MAX) {
+        console.log("🚀 Already crawled all repositories: ", env.CRAWL_MAX);
+        return;
+    }
+    await tokenMutex.runExclusive(changeTokenIndexIfExpired);
     if (!page) {
-        const numberRepositories = await RepoRepository.count();
-        page = numberRepositories / per_page;
+        page = Math.floor(numberRepositories / per_page);
+    }
+    if (page >= 10) {
+        page = 0;
     }
     page += 1;
     console.log("🚀 Adding repo job: ", { page, per_page });
@@ -39,7 +75,7 @@ async function crawlTagQueueHandler() {
         console.log("No more repositories to crawl for releases.");
         return;
     }
-
+    await tokenMutex.runExclusive(changeTokenIndexIfExpired);
     await Promise.all(
         repos.map(async (repos) => {
             const { user, name, id } = repos;
@@ -55,6 +91,7 @@ async function crawlFirstCommitQueueHandler() {
         console.log("No more releases to crawl for commits.");
         return;
     }
+    await tokenMutex.runExclusive(changeTokenIndexIfExpired);
     await Promise.all(
         firstReleases.map(async (release) => {
             const { id1, tag1, id2, tag2, repoID1, repoID2, user, name } = release;
@@ -72,6 +109,7 @@ async function crawlCommitQueueHandler() {
         return;
     }
     console.log("🚀 Adding commit job: ", notDoneReleaseIds);
+    await tokenMutex.runExclusive(changeTokenIndexIfExpired);
     await Promise.all(
         notDoneReleaseIds.map(async (releaseId) => {
             return addCommitToQueue({ releaseId });

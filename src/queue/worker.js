@@ -5,6 +5,7 @@ import redisQueue from "./index.js";
 import { COMMIT_QUEUE, FIRST_COMMIT_QUEUE, REPO_QUEUE, TAG_QUEUE } from "../constant/queue.js";
 import {
     FIRST_RELEASES,
+    LOWEST_STAR,
     NOT_DONE_RELEASES,
     RELEASE,
     REPO_KEY,
@@ -12,7 +13,7 @@ import {
 } from "../constant/redis.js";
 import { crawlGitHubTagsByRepo } from "../request/release.js";
 import { getKeyOrInit } from "../scheduler/index.js";
-import { Release } from "../sqlite/index.js";
+import { Release, Repository } from "../sqlite/index.js";
 import { crawlFirstCommitByReleaseId, crawlCommitByReleaseId } from "../request/commit.js";
 import * as CommitRepository from "../repository/commit.js";
 import { Mutex } from "async-mutex";
@@ -23,10 +24,19 @@ const firstCommitMutext = new Mutex();
 const repoWorker = new Worker(
     REPO_QUEUE,
     async (job) => {
-        const { page, per_page } = job.data;
-        const isOk = await crawlGitHubRepoLinks({ page, per_page });
+        const { page } = job.data;
+        const isOk = await crawlGitHubRepoLinks(job.data);
         if (isOk) {
-            await setKey(REPO_KEY, page, 5 * 60);
+            if (page < 10) await setKey(REPO_KEY, page);
+            else {
+                await setKey(REPO_KEY, 0);
+                const lowestStar = await Repository.findOne({
+                    order: [["star", "ASC"]],
+                    limit: 1,
+                    attributes: ["id", "user", "name", "star"],
+                });
+                await setKey(LOWEST_STAR, lowestStar.star + 10000);
+            }
             console.log("✅ Repo page is updated to: ", page);
         }
     },
@@ -73,7 +83,7 @@ const tagWorker = new Worker(
 const firstCommitWorker = new Worker(
     FIRST_COMMIT_QUEUE,
     async (job) => {
-        const { id1, tag1, id2, tag2, repoID1, repoID2, user, name } = job.data;
+        const { id1, id2, tag2, repoID2 } = job.data;
         if (!id2 || !tag2 || !repoID2) {
             console.log("❌ Error: First version don't have any commits");
             await firstCommitMutext.runExclusive(async () => {

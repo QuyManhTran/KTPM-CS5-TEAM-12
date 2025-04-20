@@ -6,7 +6,7 @@ const request = axios.create({
     headers: {
         "User-Agent": "Mozilla/5.0",
         Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        // Authorization: `Bearer ${env.GITHUB_TOKEN}`,
     },
 });
 
