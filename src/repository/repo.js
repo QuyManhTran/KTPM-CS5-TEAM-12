@@ -4,7 +4,8 @@ import env from "../config/environment.js";
 
 export const findAll = async ({ limit, offset }) => {
     return Repository.findAll({
-        attributes: ["id", "user", "name"],
+        attributes: ["id", "user", "name", "star"],
+        order: [["star", "DESC"]],
         limit,
         offset,
     });

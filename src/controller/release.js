@@ -1,3 +1,4 @@
+import { setKey } from "../config/redis.js";
 import ReleaseService from "../service/release.js";
 
 export default class ReleaseController {
@@ -25,6 +26,7 @@ export default class ReleaseController {
         const { releaseId } = req.params;
         try {
             const releases = await ReleaseService.getCommitsByReleaseId(releaseId, req.pagination);
+            await setKey(req.originalUrl, releases, 60);
             res.success(200, releases);
         } catch (error) {
             console.error("❌ Error:", error.message);
