@@ -118,7 +118,7 @@ async function crawlCommitQueueHandler() {
 }
 
 const repoScheduler = cron.schedule(
-    "*/30 * * * * *",
+    "* * * * *",
     async () => {
         console.log("🚀 Repo Scheduler started");
         await crawlRepoQueueHandler();
@@ -130,7 +130,7 @@ const repoScheduler = cron.schedule(
 );
 
 const releaseScheduler = cron.schedule(
-    "*/30 * * * * *",
+    "*/10 * * * *",
     async () => {
         console.log("🚀 Release Scheduler started");
         await crawlTagQueueHandler();
@@ -142,7 +142,7 @@ const releaseScheduler = cron.schedule(
 );
 
 const firstCommitScheduler = cron.schedule(
-    "*/30 * * * * *",
+    "*/10 * * * *",
     async () => {
         console.log("🚀 First Commit Scheduler started");
         await crawlFirstCommitQueueHandler();
@@ -154,7 +154,7 @@ const firstCommitScheduler = cron.schedule(
 );
 
 const commitScheduler = cron.schedule(
-    "*/30 * * * * *",
+    "*/10 * * * *",
     async () => {
         console.log("🚀 Commit Scheduler started");
         await crawlCommitQueueHandler();
