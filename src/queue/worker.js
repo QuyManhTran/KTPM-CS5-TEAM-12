@@ -28,7 +28,7 @@ sequelize
         console.error("❌ Error connecting to the database:", error);
     });
 
-// runSchedulers();
+runSchedulers();
 
 const commitMutex = new Mutex();
 const firstCommitMutext = new Mutex();
