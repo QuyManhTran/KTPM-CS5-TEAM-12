@@ -62,6 +62,12 @@ const Release = sequelize.define(
     },
     {
         timestamps: true,
+        indexes: [
+            {
+                unique: true,
+                fields: ["tag", "repoID"],
+            },
+        ],
     },
 );
 
@@ -88,6 +94,12 @@ const Commit = sequelize.define(
     },
     {
         timestamps: true,
+        indexes: [
+            {
+                unique: true,
+                fields: ["hash", "releaseID"],
+            },
+        ],
     },
 );
 
