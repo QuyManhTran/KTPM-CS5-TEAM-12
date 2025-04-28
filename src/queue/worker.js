@@ -12,11 +12,23 @@ import {
     REPO_NOT_TAGS,
 } from "../constant/redis.js";
 import { crawlGitHubTagsByRepo } from "../request/release.js";
-import { getKeyOrInit } from "../scheduler/index.js";
-import { Release, Repository } from "../sqlite/index.js";
+import { getKeyOrInit, runSchedulers } from "../scheduler/index.js";
+import { Release, Repository, sequelize } from "../sqlite/index.js";
 import { crawlFirstCommitByReleaseId, crawlCommitByReleaseId } from "../request/commit.js";
 import * as CommitRepository from "../repository/commit.js";
 import { Mutex } from "async-mutex";
+
+// Sync database and create tables
+sequelize
+    .sync()
+    .then(() => {
+        console.log("Database connected and tables created!");
+    })
+    .catch((error) => {
+        console.error("❌ Error connecting to the database:", error);
+    });
+
+// runSchedulers();
 
 const commitMutex = new Mutex();
 const firstCommitMutext = new Mutex();

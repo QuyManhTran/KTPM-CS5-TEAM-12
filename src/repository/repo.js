@@ -36,7 +36,7 @@ export const getReposNotTags = async (existRepos) => {
         },
         attributes: ["id", "user", "name"],
         offset: 0,
-        limit: env.PAGE_SIZE,
+        limit: 10,
         subQuery: false,
     });
 };

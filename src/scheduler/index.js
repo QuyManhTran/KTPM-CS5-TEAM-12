@@ -165,4 +165,11 @@ const commitScheduler = cron.schedule(
     },
 );
 
-export { repoScheduler, releaseScheduler, firstCommitScheduler, commitScheduler, getKeyOrInit };
+const runSchedulers = () => {
+    repoScheduler.start();
+    releaseScheduler.start();
+    firstCommitScheduler.start();
+    commitScheduler.start();
+};
+
+export { runSchedulers, getKeyOrInit };
