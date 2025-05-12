@@ -10,4 +10,5 @@ releaseRouter.get(
     PaginationMiddleware,
     ReleaseController.getCommitsByReleaseId,
 );
+releaseRouter.get("/count", ReleaseController.getReleaseCount);
 export default releaseRouter;

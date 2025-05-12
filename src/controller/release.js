@@ -33,4 +33,14 @@ export default class ReleaseController {
             res.error(500, "Internal Server Error");
         }
     };
+
+    static getReleaseCount = async (req, res) => {
+        try {
+            const count = await ReleaseService.getReleaseCount();
+            res.success(200, count);
+        } catch (error) {
+            console.error("❌ Error:", error.message);
+            res.error(500, "Internal Server Error");
+        }
+    };
 }

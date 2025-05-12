@@ -42,4 +42,8 @@ export default class ReleaseService {
             meta,
         };
     }
+
+    static async getReleaseCount() {
+        return ReleaseRepository.count();
+    }
 }
